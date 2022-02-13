@@ -2,16 +2,18 @@ import game.Board
 import game.BoardPosition.*
 import game.Piece
 import game.Piece.RED
+import ui.TsoroYematatuBoardSwing
 
 fun main(){
-    Board(::inVictory, ::drawRequested, ::onBoardUpdated, ::onBoardError).run {
-        setPiece(position = LINE_0_COLUMN_0, piece = RED)
-        setPiece(position = LINE_1_COLUMN_0, piece = RED)
-        setPiece(position = LINE_0_COLUMN_0, piece = RED) // InvalidMovimentException
-        movePiece(origin = LINE_1_COLUMN_0, destiny = LINE_2_COLUMN_0)
-        movePiece(origin = LINE_1_COLUMN_0, destiny = LINE_2_COLUMN_0) // MissingPieceOriginException
-        setPiece(position = LINE_1_COLUMN_0, piece = RED)
-    }
+//    Board(::inVictory, ::drawRequested, ::onBoardUpdated, ::onBoardError).run {
+//        setPiece(position = LINE_0_COLUMN_0, piece = RED)
+//        setPiece(position = LINE_1_COLUMN_0, piece = RED)
+//        setPiece(position = LINE_0_COLUMN_0, piece = RED) // InvalidMovimentException
+//        movePiece(origin = LINE_1_COLUMN_0, destiny = LINE_2_COLUMN_0)
+//        movePiece(origin = LINE_1_COLUMN_0, destiny = LINE_2_COLUMN_0) // MissingPieceOriginException
+//        setPiece(position = LINE_1_COLUMN_0, piece = RED)
+//    }
+    TsoroYematatuBoardSwing()
 }
 
 private fun inVictory(piece: Piece){
