@@ -2,31 +2,40 @@ package game
 
 import game.BoardPosition.*
 import game.Piece.EMPTY
-import game.exceptions.InvalidMovimentException
-import game.exceptions.MissingPieceOriginException
-import game.exceptions.PieceNotFoundException
+import game.exceptions.*
 
 class Board(
     val inVictory: ((piece: Piece) -> Unit),
     val drawRequested: ((piece: Piece) -> Unit),
     val onBoardUpdated: ((HashMap<String, Piece>) -> Unit),
+    val onGameStageUpdate: ((gameStage: GameStage) ->  Unit),
     val onError: ((Throwable) -> Unit)
 ) {
     private var _board: HashMap<String, Piece>
+    private var gameStage: GameStage = GameStage.IDLE
+        set(value) {
+            field = value
+            onGameStageUpdate(value)
+        }
     private var drawRequest: Piece? = null
 
     init {
         _board = INITIAL_BOARD
+        gameStage = GameStage.SET_RED
         logBoard()
     }
 
     fun setPiece(position: BoardPosition, piece: Piece) = try {
         checkValidSetPiece(position, piece)
+        if (checkStageSetIsDone()){
+            throw SetPieceOnMovingStageException()
+        }
         _board[position.coordinates] = piece
         onBoardUpdated(_board)
         if (checkForWinner()){
             inVictory(piece)
         }
+        updateGameStage(piece)
         logBoard()
     } catch (e: Exception) {
         onError(e)
@@ -37,12 +46,25 @@ class Board(
         _board[destiny.coordinates] = _board[origin.coordinates] ?: throw PieceNotFoundException(origin)
         _board[origin.coordinates] = EMPTY
         onBoardUpdated(_board)
-        if (checkForWinner()){
-            inVictory(_board[origin.coordinates] ?: throw PieceNotFoundException(origin))
-        }
         logBoard()
+        if (checkForWinner()){
+            inVictory(_board[destiny.coordinates] ?: throw PieceNotFoundException(destiny))
+        }
+        updateGameStage(_board[destiny.coordinates] ?: throw PieceNotFoundException(origin))
+
     } catch (e: Exception){
         onError(e)
+    }
+
+    private fun updateGameStage(piece: Piece) {
+            val checkStageSetIsDone = checkStageSetIsDone()
+        gameStage = when {
+            piece == Piece.RED && !checkStageSetIsDone -> GameStage.SET_BLUE
+            piece == Piece.BLUE && !checkStageSetIsDone -> GameStage.SET_RED
+            piece == Piece.RED && checkStageSetIsDone -> GameStage.MOVING_BLUE
+            piece == Piece.BLUE && checkStageSetIsDone -> GameStage.MOVING_RED
+            else -> throw Exception("on updateGameStage: Empty piece found")
+        }
     }
 
     private fun checkValidMovement(origin: BoardPosition, destiny: BoardPosition) {
@@ -85,6 +107,10 @@ class Board(
             || ((_board[LINE_2_COLUMN_0.coordinates] == _board[LINE_2_COLUMN_1.coordinates])
                 && (_board[LINE_2_COLUMN_0.coordinates] == _board[LINE_2_COLUMN_2.coordinates])
                 && _board[LINE_2_COLUMN_0.coordinates] != EMPTY)
+    }
+
+    private fun checkStageSetIsDone(): Boolean {
+        return _board.filterValues { piece -> piece == EMPTY }.size == 1
     }
 
     private fun logBoard(){
