@@ -70,15 +70,18 @@ class TsoroYematatuBoardSwing(
     }
 
     private fun onBtnClicked(actionEvent: ActionEvent, position: BoardPosition){
-        if (board.gameStage == GameStage.SET_RED || board.gameStage == GameStage.SET_BLUE) {
-            val piece = if (board.gameStage == GameStage.SET_RED) Piece.RED else Piece.BLUE
-            board.setPiece(position, piece)
-        }
-        if (board.gameStage == GameStage.MOVING_RED || board.gameStage == GameStage.MOVING_BLUE) {
-            movingOriginPosition?.let { originPosition ->
-                board.movePiece(originPosition, position)
-            } ?: run {
-                movingOriginPosition = position
+        when (board.gameStage) {
+            GameStage.SET_RED, GameStage.SET_BLUE -> {
+                val piece = if (board.gameStage == GameStage.SET_RED) Piece.RED else Piece.BLUE
+                board.setPiece(position, piece)
+            }
+            GameStage.MOVING_RED, GameStage.MOVING_BLUE -> {
+                movingOriginPosition?.let { originPosition ->
+                    board.movePiece(originPosition, position)
+                    movingOriginPosition = null
+                } ?: run {
+                    movingOriginPosition = position
+                }
             }
         }
     }
@@ -102,6 +105,7 @@ class TsoroYematatuBoardSwing(
     }
 
     private fun onBoardError(throwable: Throwable){
+        movingOriginPosition = null
         showError(throwable)
     }
 
