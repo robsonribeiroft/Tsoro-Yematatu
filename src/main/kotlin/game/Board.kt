@@ -26,6 +26,7 @@ class Board(
     }
 
     fun setPiece(position: BoardPosition, piece: Piece) = try {
+        checkTurnOnSetStage(piece)
         checkValidSetPiece(position, piece)
         if (checkStageSetIsDone()){
             throw SetPieceOnMovingStageException()
@@ -42,8 +43,10 @@ class Board(
     }
 
     fun movePiece(origin: BoardPosition, destiny: BoardPosition) = try {
+        val originPiece = _board[origin.coordinates] ?: throw PieceNotFoundException(origin)
+        checkTurnOnMovingStage(originPiece)
         checkValidMovement(origin, destiny)
-        _board[destiny.coordinates] = _board[origin.coordinates] ?: throw PieceNotFoundException(origin)
+        _board[destiny.coordinates] = originPiece
         _board[origin.coordinates] = EMPTY
         onBoardUpdated(_board)
         logBoard()
@@ -65,6 +68,20 @@ class Board(
             piece == Piece.BLUE && checkStageSetIsDone -> GameStage.MOVING_RED
             else -> throw Exception("on updateGameStage: Empty piece found")
         }
+    }
+
+    private fun checkTurnOnMovingStage(piece: Piece){
+        if (gameStage == GameStage.MOVING_RED && piece == Piece.BLUE)
+            throw InvalidTurnException(piece)
+        if (gameStage == GameStage.MOVING_BLUE && piece == Piece.RED)
+            throw InvalidTurnException(piece)
+    }
+
+    private fun checkTurnOnSetStage(piece: Piece){
+        if (gameStage == GameStage.SET_RED && piece == Piece.BLUE)
+            throw InvalidTurnException(piece)
+        if (gameStage == GameStage.SET_BLUE && piece == Piece.RED)
+            throw InvalidTurnException(piece)
     }
 
     private fun checkValidMovement(origin: BoardPosition, destiny: BoardPosition) {

@@ -10,10 +10,12 @@ fun main(){
     val board = Board(::inVictory, ::drawRequested, ::onBoardUpdated, ::onGameStageUpdate, ::onBoardError).apply {
         setPiece(position = LINE_0_COLUMN_0, piece = RED)
         setPiece(position = LINE_1_COLUMN_0, piece = BLUE)
+        setPiece(position = LINE_1_COLUMN_1, piece = BLUE) // Invalid Turn Blue
         setPiece(position = LINE_1_COLUMN_1, piece = RED)
         setPiece(position = LINE_2_COLUMN_1, piece = BLUE)
         setPiece(position = LINE_2_COLUMN_2, piece = RED)
         setPiece(position = LINE_1_COLUMN_2, piece = BLUE)
+        movePiece(origin = LINE_2_COLUMN_1, destiny = LINE_2_COLUMN_0) //Invalid Turn Blue
         movePiece(origin = LINE_2_COLUMN_2, destiny = LINE_2_COLUMN_0)
         movePiece(origin = LINE_2_COLUMN_1, destiny = LINE_2_COLUMN_2)
         movePiece(origin = LINE_2_COLUMN_0, destiny = LINE_2_COLUMN_1)
