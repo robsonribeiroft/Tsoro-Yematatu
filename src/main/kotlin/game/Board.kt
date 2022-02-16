@@ -5,14 +5,14 @@ import game.Piece.EMPTY
 import game.exceptions.*
 
 class Board(
-    val inVictory: ((piece: Piece) -> Unit),
-    val drawRequested: ((piece: Piece) -> Unit),
-    val onBoardUpdated: ((HashMap<String, Piece>) -> Unit),
-    val onGameStageUpdate: ((gameStage: GameStage) ->  Unit),
-    val onError: ((Throwable) -> Unit)
+    var inVictory: ((piece: Piece) -> Unit) = {},
+    var drawRequested: ((piece: Piece) -> Unit) = {},
+    var onBoardUpdated: ((HashMap<String, Piece>) -> Unit) = {},
+    var onGameStageUpdate: ((gameStage: GameStage) ->  Unit) = {},
+    var onError: ((Throwable) -> Unit) = {}
 ) {
     private var _board: HashMap<String, Piece>
-    private var gameStage: GameStage = GameStage.IDLE
+    var gameStage: GameStage = GameStage.IDLE
         set(value) {
             field = value
             onGameStageUpdate(value)
