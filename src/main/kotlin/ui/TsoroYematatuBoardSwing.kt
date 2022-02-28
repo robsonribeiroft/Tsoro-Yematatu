@@ -28,6 +28,10 @@ class TsoroYematatuBoardSwing(
 
     private var movingOriginPosition: BoardPosition? = null
 
+    private val textLabelGameStage = JLabel(getMessageByGameStage(board.gameStage)).apply {
+        setBounds(175,0, 300, 100)
+    }
+
     private val btnLine0Column0 = PieceSwing(BoardPosition.LINE_0_COLUMN_0, ::onBtnClicked).apply {
         setBounds(PIECE_LINE_0_COLUMN_0_BOARD_X, PIECE_LINE_0_Y, PIECE_SIZE, PIECE_SIZE)
     }
@@ -52,13 +56,14 @@ class TsoroYematatuBoardSwing(
 
     init {
 
-        setSize(610, 800)
+        setSize(600, 800)
         defaultCloseOperation = JFrame.EXIT_ON_CLOSE
         setLocationRelativeTo(null)
         isVisible = true
-        val background = JLabel(ImageIcon(ImageIO.read(File("/home/robson/PPD/TsoroYematatu/src/main/resources/table.png"))))
+        val background = JLabel(ImageIcon(ImageIO.read(File("/home/robsonr/IdeaProjects/Tsoro-Yematatu/src/main/resources/table.png"))))
         contentPane = background
 
+        add(textLabelGameStage)
         add(btnLine0Column0)
         add(btnLine1Column0)
         add(btnLine1Column1)
@@ -71,18 +76,8 @@ class TsoroYematatuBoardSwing(
 
     private fun onBtnClicked(actionEvent: ActionEvent, position: BoardPosition){
         when (board.gameStage) {
-            GameStage.SET_RED, GameStage.SET_BLUE -> {
-                val piece = if (board.gameStage == GameStage.SET_RED) Piece.RED else Piece.BLUE
-                board.setPiece(position, piece)
-            }
-            GameStage.MOVING_RED, GameStage.MOVING_BLUE -> {
-                movingOriginPosition?.let { originPosition ->
-                    board.movePiece(originPosition, position)
-                    movingOriginPosition = null
-                } ?: run {
-                    movingOriginPosition = position
-                }
-            }
+            GameStage.SET_RED, GameStage.SET_BLUE -> board.setPieceFromUi(position)
+            GameStage.MOVING_RED, GameStage.MOVING_BLUE -> board.movePieceFromUi(position)
         }
     }
 
@@ -113,7 +108,7 @@ class TsoroYematatuBoardSwing(
         println("onGameStageUpdate: $gameStage")
     }
 
-    fun initListeners(){
+    private fun initListeners(){
         addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent) {
                 println("Closed")

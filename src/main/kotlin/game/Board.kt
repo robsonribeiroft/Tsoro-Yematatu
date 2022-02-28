@@ -11,6 +11,7 @@ class Board(
     var onGameStageUpdate: ((gameStage: GameStage) ->  Unit) = {},
     var onError: ((Throwable) -> Unit) = {}
 ) {
+    private var movingOriginPosition: BoardPosition? = null
     private var _board: HashMap<String, Piece>
     var gameStage: GameStage = GameStage.IDLE
         set(value) {
@@ -25,7 +26,7 @@ class Board(
         logBoard()
     }
 
-    fun setPiece(position: BoardPosition, piece: Piece) = try {
+    private fun setPiece(position: BoardPosition, piece: Piece) = try {
         checkTurnOnSetStage(piece)
         checkValidSetPiece(position, piece)
         if (checkStageSetIsDone()){
@@ -42,7 +43,7 @@ class Board(
         onError(e)
     }
 
-    fun movePiece(origin: BoardPosition, destiny: BoardPosition) = try {
+    private fun movePiece(origin: BoardPosition, destiny: BoardPosition) = try {
         val originPiece = _board[origin.coordinates] ?: throw PieceNotFoundException(origin)
         checkTurnOnMovingStage(originPiece)
         checkValidMovement(origin, destiny)
@@ -57,6 +58,20 @@ class Board(
 
     } catch (e: Exception){
         onError(e)
+    }
+
+    fun movePieceFromUi(position: BoardPosition){
+        movingOriginPosition?.let { originPosition ->
+            movePiece(originPosition, position)
+            movingOriginPosition = null
+        } ?: run {
+            movingOriginPosition = position
+        }
+    }
+
+    fun setPieceFromUi(position: BoardPosition){
+        val piece = if (gameStage == GameStage.SET_RED) Piece.RED else Piece.BLUE
+        setPiece(position, piece)
     }
 
     private fun updateGameStage(piece: Piece) {
