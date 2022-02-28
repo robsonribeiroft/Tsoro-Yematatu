@@ -5,18 +5,14 @@ import game.Piece.EMPTY
 import game.exceptions.*
 
 class Board(
-    var inVictory: ((piece: Piece) -> Unit) = {},
-    var drawRequested: ((piece: Piece) -> Unit) = {},
-    var onBoardUpdated: ((HashMap<String, Piece>) -> Unit) = {},
-    var onGameStageUpdate: ((gameStage: GameStage) ->  Unit) = {},
-    var onError: ((Throwable) -> Unit) = {}
+    private val gameUpdateNotification: GameUpdateNotification
 ) {
     private var movingOriginPosition: BoardPosition? = null
     private var _board: HashMap<String, Piece>
     var gameStage: GameStage = GameStage.IDLE
         set(value) {
             field = value
-            onGameStageUpdate(value)
+            gameUpdateNotification.onGameStageUpdate(value)
         }
     private var drawRequest: Piece? = null
 
@@ -26,6 +22,10 @@ class Board(
         logBoard()
     }
 
+    fun resetMovingOriginPosition () {
+        movingOriginPosition = null
+    }
+
     private fun setPiece(position: BoardPosition, piece: Piece) = try {
         checkTurnOnSetStage(piece)
         checkValidSetPiece(position, piece)
@@ -33,14 +33,14 @@ class Board(
             throw SetPieceOnMovingStageException()
         }
         _board[position.coordinates] = piece
-        onBoardUpdated(_board)
+        gameUpdateNotification.onBoardUpdated(_board)
         if (checkForWinner()){
-            inVictory(piece)
+            gameUpdateNotification.inVictory(piece)
         }
         updateGameStage(piece)
         logBoard()
     } catch (e: Exception) {
-        onError(e)
+        gameUpdateNotification.onError(e)
     }
 
     private fun movePiece(origin: BoardPosition, destiny: BoardPosition) = try {
@@ -49,15 +49,15 @@ class Board(
         checkValidMovement(origin, destiny)
         _board[destiny.coordinates] = originPiece
         _board[origin.coordinates] = EMPTY
-        onBoardUpdated(_board)
+        gameUpdateNotification.onBoardUpdated(_board)
         logBoard()
         if (checkForWinner()){
-            inVictory(_board[destiny.coordinates] ?: throw PieceNotFoundException(destiny))
+            gameUpdateNotification.inVictory(_board[destiny.coordinates] ?: throw PieceNotFoundException(destiny))
         }
         updateGameStage(_board[destiny.coordinates] ?: throw PieceNotFoundException(origin))
 
     } catch (e: Exception){
-        onError(e)
+        gameUpdateNotification.onError(e)
     }
 
     fun movePieceFromUi(position: BoardPosition){
@@ -110,12 +110,12 @@ class Board(
 
     fun requestDraw(piece: Piece){
         this.drawRequest = piece
-        drawRequested(piece)
+        gameUpdateNotification.drawRequested(piece)
     }
 
     fun setBoard(board: HashMap<String, Piece>) {
         this._board = board
-        onBoardUpdated(board)
+        gameUpdateNotification.onBoardUpdated(board)
     }
     private fun checkValidSetPiece(position: BoardPosition, piece: Piece) {
         if (_board[position.coordinates] != EMPTY){

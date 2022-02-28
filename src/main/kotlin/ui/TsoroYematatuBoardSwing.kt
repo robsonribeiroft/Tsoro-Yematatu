@@ -1,9 +1,6 @@
 package ui
 
-import game.Board
-import game.BoardPosition
-import game.GameStage
-import game.Piece
+import game.*
 import java.awt.event.ActionEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -16,15 +13,9 @@ import javax.swing.JOptionPane
 
 class TsoroYematatuBoardSwing(
     title: String = "Tsoro Yematatu",
-): JFrame(title) {
+): JFrame(title), GameUpdateNotification {
 
-    private val board = Board(
-        ::inVictory,
-        ::drawRequested,
-        ::onBoardUpdated,
-        ::onGameStageUpdate,
-        ::onBoardError
-    )
+    private val board = Board(this)
 
     private var movingOriginPosition: BoardPosition? = null
 
@@ -81,15 +72,15 @@ class TsoroYematatuBoardSwing(
         }
     }
 
-    private fun inVictory(piece: Piece){
+    override fun inVictory(piece: Piece){
         showMessage("The $piece Wins!!!")
     }
 
-    private fun drawRequested(piece: Piece){
+    override fun drawRequested(piece: Piece){
         showMessage("${piece.name} has requested a draw!")
     }
 
-    private fun onBoardUpdated(board: HashMap<String, Piece>) {
+    override fun onBoardUpdated(board: HashMap<String, Piece>) {
         btnLine0Column0.updateFromBoard(board)
         btnLine1Column0.updateFromBoard(board)
         btnLine1Column1.updateFromBoard(board)
@@ -104,8 +95,13 @@ class TsoroYematatuBoardSwing(
         showError(throwable)
     }
 
-    private fun onGameStageUpdate(gameStage: GameStage){
+    override fun onGameStageUpdate(gameStage: GameStage){
         println("onGameStageUpdate: $gameStage")
+    }
+
+    override fun onError(throwable: Throwable) {
+        board.resetMovingOriginPosition()
+        showError(throwable)
     }
 
     private fun initListeners(){
